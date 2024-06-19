@@ -1,41 +1,36 @@
 import streamlit as st
 from streamlit_chat import message
-from bardapi import Bard
 import google.generativeai as genai
-#Enter your API key here
-genai.configure(api_key='AIzaSyCylh4v74qKz7AfRZmIa43-kGUxsLQHlN8')
-#configure the gemini models required
+
+st.title('My AI Assistant')
+
+API_KEY = 'AIzaSyCNmlrWGWjhWUOLimzKZj9D7xFZ8361ZRE'  # Replace with your actual API key
+genai.configure(api_key=API_KEY)
+
 model = genai.GenerativeModel('gemini-pro')
 
-#The function that is being used to generate the response from the text inputs via API
-def generate_response(prompt):
-    response = model.generate_content(prompt)
-    return response.text
+def get_ai_response(prompt):
+    result = model.generate_content(prompt)
+    return result.text
 
-#Function to get the input text from the user
-def get_text():
-    input_text=st.text_input("Message Here!",key='input')
-    return input_text
+def get_user_input():
+    return st.text_input("Your message:", key='input')
 
 
-st.title('API based Chatbot')
+if 'responses' not in st.session_state:
+    st.session_state['responses'] = []
+if 'inputs' not in st.session_state:
+    st.session_state['inputs'] = []
 
-#Initialising the session state variables
-if 'generated' not in st.session_state:
-    st.session_state['generated']=[]
+user_input = get_user_input()
 
-if 'past' not in st.session_state:
-    st.session_state['past']=[]
-
-user_input=get_text()
 if user_input:
-    print(user_input)
-    output=generate_response(user_input)
-    print(output)
-    st.session_state.past.append(user_input)
-    st.session_state.generated.append(output)
+    ai_response = get_ai_response(user_input)
 
-if st.session_state['generated']:
-    for i in range(len(st.session_state['generated'])-1,-1,-1):
-        message(st.session_state['generated'][i],key=str(i))
-        message(st.session_state['past'][i],key="user"+str(i),is_user=True)
+    st.session_state.inputs.append(user_input)
+    st.session_state.responses.append(ai_response)
+
+if st.session_state['responses']:
+    for i in range(len(st.session_state['responses']) - 1, -1, -1):
+        message(st.session_state['responses'][i], key=str(i))  
+        message(st.session_state['inputs'][i], key="user"+str(i), is_user=True) 
